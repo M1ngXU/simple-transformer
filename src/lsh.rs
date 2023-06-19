@@ -90,24 +90,31 @@ where
 	}
 }
 
-impl<const M: usize, const H: usize, const K: usize, const V: usize, const HASHES: usize, T>
+impl<
+		const M: usize,
+		const H: usize,
+		const K: usize,
+		const V: usize,
+		const HASHES: usize,
+		D: Device<f32>,
+		T,
+	>
 	Module<(
-		Tensor<(usize, Const<M>), f32, Cpu, T>,
-		Tensor<(usize, Const<M>), f32, Cpu>,
-	)> for LshAttention<M, H, HASHES, K, V, f32, Cpu>
+		Tensor<(usize, Const<M>), f32, D, T>,
+		Tensor<(usize, Const<M>), f32, D>,
+	)> for LshAttention<M, H, HASHES, K, V, f32, D>
 where
-	Cpu: Device<f32>,
-	T: Tape<f32, Cpu>,
+	T: Tape<f32, D>,
 	StandardNormal: Distribution<f32>,
 {
 	type Error = <Cpu as HasErr>::Err;
-	type Output = Tensor<(usize, Const<M>), f32, Cpu, T>;
+	type Output = Tensor<(usize, Const<M>), f32, D, T>;
 
 	fn try_forward(
 		&self,
 		input: (
-			Tensor<(usize, Const<M>), f32, Cpu, T>,
-			Tensor<(usize, Const<M>), f32, Cpu>,
+			Tensor<(usize, Const<M>), f32, D, T>,
+			Tensor<(usize, Const<M>), f32, D>,
 		),
 	) -> Result<Self::Output, Self::Error> {
 		Ok(self.forward(input))
@@ -116,8 +123,8 @@ where
 	fn forward(
 		&self,
 		(qk, v): (
-			Tensor<(usize, Const<M>), f32, Cpu, T>,
-			Tensor<(usize, Const<M>), f32, Cpu>,
+			Tensor<(usize, Const<M>), f32, D, T>,
+			Tensor<(usize, Const<M>), f32, D>,
 		),
 	) -> Self::Output {
 		assert_eq!(qk.shape().num_elements() / M, v.shape().num_elements() / M);
@@ -170,17 +177,18 @@ where
 		let (values, mut tape) = values.split_tape();
 		let mut output = dev.zeros_like(&(s1, s1));
 		for (i, index) in indeces.iter().enumerate() {
-			output[*index] = values[[i]];
+			// output[*index] = values[[i]];
 		}
 		let inp_ghost = values.clone();
 		let out_ghost = output.clone();
-		tape.add_backward_op(move |grads: &mut Gradients<f32, Cpu>| {
+		tape.add_backward_op(move |grads: &mut Gradients<f32, D>| {
 			grads.try_alloc_for(&inp_ghost)?;
 			grads.try_alloc_for(&out_ghost)?;
 			let (grad_inp, grad_out) = grads.mut_and_ref(&inp_ghost, &out_ghost);
 			for (i, index) in indeces.into_iter().enumerate() {
-				grad_inp[index_to_i(inp_ghost.shape(), &inp_ghost.strides(), [i])] +=
-					grad_out[index_to_i(out_ghost.shape(), &out_ghost.strides(), index)];
+				// grad_inp[index_to_i(inp_ghost.shape(), &inp_ghost.strides(),
+				// [i])] += 	grad_out[index_to_i(out_ghost.shape(),
+				// &out_ghost.strides(), index)];
 			}
 			Ok(())
 		});
@@ -193,16 +201,22 @@ where
 	}
 }
 
-impl<const M: usize, const H: usize, const K: usize, const V: usize, const HASHES: usize, Src>
-	Module<Src> for LshAttention<M, H, HASHES, K, V, f32, Cpu>
+impl<
+		const M: usize,
+		const H: usize,
+		const K: usize,
+		const V: usize,
+		const HASHES: usize,
+		D: Device<f32>,
+		Src,
+	> Module<Src> for LshAttention<M, H, HASHES, K, V, f32, D>
 where
 	f32: Dtype,
-	Cpu: Device<f32>,
 	Src: SplitTape,
 	StandardNormal: Distribution<f32>,
-	Self: Module<(Src, Src::NoTape), Output = Src, Error = <Cpu as HasErr>::Err>,
+	Self: Module<(Src, Src::NoTape), Output = Src, Error = <D as HasErr>::Err>,
 {
-	type Error = <Cpu as HasErr>::Err;
+	type Error = <D as HasErr>::Err;
 	type Output = Src;
 
 	fn try_forward(&self, src: Src) -> Result<Self::Output, Self::Error> {
@@ -217,7 +231,7 @@ impl<
 		const K: usize,
 		const V: usize,
 		const HASHES: usize,
-		Cpu: Device<f32>,
-	> NonMutableModule for LshAttention<M, H, HASHES, K, V, f32, Cpu>
+		D: Device<f32>,
+	> NonMutableModule for LshAttention<M, H, HASHES, K, V, f32, D>
 {
 }

@@ -7,7 +7,10 @@ edition = "2021"
 
 [dependencies]
 csv = "1.2.1"
-dfdx = { path = "../dfdx", features = ["nightly", "numpy"] }
+dfdx = { git = "https://github.com/M1ngXU/dfdx.git", branch = "more-public", features = [
+    "nightly",
+    "numpy",
+] }
 itertools = "0.10.5"
 rand = "0.8.5"
 serde = { version = "1.0.163", features = ["derive"] }

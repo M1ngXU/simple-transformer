@@ -154,6 +154,7 @@ source = "git+https://github.com/coreylowman/cudarc?branch=dfdx-half#cc9a8d3e6aa
 [[package]]
 name = "dfdx"
 version = "0.11.2"
+source = "git+https://github.com/M1ngXU/dfdx.git?branch=more-public#21da472f8ccf449392658c6104d8787672b8c6cd"
 dependencies = [
  "cudarc",
  "gemm",
