@@ -1,6 +1,7 @@
 /target
-*.csv
 log
+err
+*.csv
 /checkpoints
 *.npz
 *.bin
