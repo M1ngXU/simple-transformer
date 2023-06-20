@@ -17,7 +17,7 @@ pub type Token = usize;
 pub type Gpt2Token = usize;
 pub type Tokens = Tensor<(usize,), Token, Cpu>;
 pub const AMOUNT_STARS: usize = 1;
-pub const MAX_LEN: usize = 250;
+pub const MAX_LEN: usize = 500;
 
 static TRUNCATION_STRATEGY: TruncationStrategy = TruncationStrategy::DoNotTruncate;
 fn get_tokenizer() -> Gpt2Tokenizer {
