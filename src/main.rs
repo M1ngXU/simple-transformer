@@ -195,7 +195,7 @@ fn train() {
 	let mut best_training_loss_epoch = 0;
 
 	let optimizer = Arc::new(RwLock::new(Adam::<_, f32, Cpu>::new(&model, AdamConfig {
-		lr: 1e-6,
+		lr: 1e-7,
 		..Default::default()
 	})));
 	let model = Arc::new(RwLock::new(model));
