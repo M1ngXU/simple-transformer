@@ -154,10 +154,11 @@ source = "git+https://github.com/coreylowman/cudarc?branch=dfdx-half#cc9a8d3e6aa
 [[package]]
 name = "dfdx"
 version = "0.11.2"
-source = "git+https://github.com/M1ngXU/dfdx.git?branch=more-public#6fbc34aca8a6ec214c4b218b76b12a6865d3c8c7"
+source = "git+https://github.com/M1ngXU/dfdx.git?branch=more-public#f3bcda4b8aa2171626cc6f4b2f5827c36fa8d7e7"
 dependencies = [
  "cudarc",
  "gemm",
+ "glob",
  "half 3.0.0-dev",
  "num-traits",
  "rand",
@@ -327,6 +328,12 @@ dependencies = [
  "libc",
  "wasi",
 ]
+
+[[package]]
+name = "glob"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d2fabcfbdc87f4758337ca535fb41a6d701b65693ce38287d856d1674551ec9b"
 
 [[package]]
 name = "half"
