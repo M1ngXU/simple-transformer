@@ -22,10 +22,10 @@ mod dataset;
 mod lsh;
 mod model;
 
-const BATCH_SIZE: usize = 1024;
+const BATCH_SIZE: usize = 128;
 const VALIDATION_BATCH_SIZE: usize = BATCH_SIZE;
 const EPOCHS: usize = 10000;
-const DATA_PER_BATCH: usize = 16;
+const DATA_PER_BATCH: usize = 32;
 const NO_LOSS_IMPROVEMENT: usize = 5;
 
 /// Amount of digits required to display [`EPOCHS`] as decimal.
