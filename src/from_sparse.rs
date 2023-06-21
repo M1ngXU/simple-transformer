@@ -194,7 +194,7 @@ mod tests {
 		dev.dev
 			.htod_copy_into(
 				(0..25).collect_vec(),
-				&mut tape.gradients.get_or_alloc_mut(&output).unwrap(),
+				&mut *tape.gradients.get_or_alloc_mut(&output).unwrap(),
 			)
 			.unwrap();
 
