@@ -149,12 +149,11 @@ dependencies = [
 [[package]]
 name = "cudarc"
 version = "0.9.9"
-source = "git+https://github.com/coreylowman/cudarc?branch=dfdx-half#cc9a8d3e6aab5ba2920b35aaa0d4bf4c773d94d6"
+source = "git+https://github.com/coreylowman/cudarc.git?branch=dfdx-half#cc9a8d3e6aab5ba2920b35aaa0d4bf4c773d94d6"
 
 [[package]]
 name = "dfdx"
 version = "0.11.2"
-source = "git+https://github.com/M1ngXU/dfdx.git?branch=more-public#f3bcda4b8aa2171626cc6f4b2f5827c36fa8d7e7"
 dependencies = [
  "cudarc",
  "gemm",
@@ -672,6 +671,7 @@ version = "0.1.0"
 dependencies = [
  "bincode",
  "csv",
+ "cudarc",
  "dfdx",
  "flate2",
  "itertools",

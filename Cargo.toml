@@ -7,10 +7,12 @@ edition = "2021"
 
 [dependencies]
 csv = "1.2.1"
-dfdx = { git = "https://github.com/M1ngXU/dfdx.git", branch = "more-public", features = [
-    "nightly",
-    "numpy",
-] }
+# dfdx = { git = "https://github.com/M1ngXU/dfdx.git", branch = "more-public", features = [
+#     "nightly",
+#     "numpy",
+# ] }
+dfdx = { path = "../dfdx", features = ["nightly", "numpy"] }
+cudarc = { git = "https://github.com/coreylowman/cudarc.git", branch = "dfdx-half", optional = true }
 itertools = "0.10.5"
 rand = "0.8.5"
 serde = { version = "1.0.163", features = ["derive"] }
@@ -23,8 +25,10 @@ bincode = "1.3.3"
 flate2 = "1.0.26"
 
 [features]
+cudarc = ["dep:cudarc", "cudarc/cudnn"]
+default = ["train", "cuda"]
 train = []
 inference = []
 test = []
 save-data = []
-cuda = ["dfdx/cuda", "dfdx/cudnn"]
+cuda = ["dfdx/cuda", "dfdx/cudnn", "cudarc"]
