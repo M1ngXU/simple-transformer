@@ -191,15 +191,12 @@ mod tests {
 
 		assert_eq!(output.as_vec(), expected);
 
-		for (i, g) in tape
-			.gradients
-			.get_or_alloc_mut(&output)
-			.unwrap()
-			.iter_mut()
-			.enumerate()
-		{
-			*g = i as f32;
-		}
+		dev.dev
+			.htod_copy_into(
+				(0..25).collect_vec(),
+				&mut tape.gradients.get_or_alloc_mut(&output).unwrap(),
+			)
+			.unwrap();
 
 		let grads = tape.execute().unwrap();
 
