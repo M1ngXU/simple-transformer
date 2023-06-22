@@ -1,4 +1,3 @@
-use cudarc::driver::CudaSlice;
 use dfdx::prelude::*;
 use dfdx::tensor::cpu::index_to_i;
 use itertools::Itertools;
@@ -71,6 +70,7 @@ impl<
 		assert_eq!(values.shape().0, indeces.shape().0);
 
 		if !self.dev.has_func("from_sparse_f32", "from_sparse_fwd_f32") {
+			// todo actually compile these somehow
 			self.dev
 				.load_ptx("from_sparse_f32".into(), "from_sparse_f32", &[
 					"from_sparse_fwd_f32",

@@ -5,8 +5,6 @@ use num_traits::Float;
 use rand_distr::uniform::SampleUniform;
 use rand_distr::{Distribution, StandardNormal};
 
-use crate::from_sparse::FromSparse;
-
 pub mod builder {
 	#[derive(Debug, Clone)]
 	pub struct LshAttention<
@@ -95,7 +93,7 @@ impl<
 		const K: usize,
 		const V: usize,
 		const HASHES: usize,
-		D: Device<E> + FromSparse<E, T, (usize, usize)>,
+		D: Device<E> + FromSparse<E, T, (usize, usize)> + ZerosTensor<usize>,
 		E: Dtype,
 		T: Tape<E, D>,
 	>
@@ -148,24 +146,18 @@ where
 			.map(|(i, hash)| (hash, i))
 			.into_group_map();
 
-		let mut indeces = dev.zeros_like(&(0, Const::<2>));
+		let mut indeces = Vec::new();
 		let mut values = dev.zeros_like(&(0,)).put_tape(tape);
 
 		for (_, idc) in bucket_ids {
 			let shape = (idc.len(),);
 			let idc_iter = idc.iter().copied();
-			indeces = (
-				indeces,
-				dev.tensor_from_vec(
-					idc_iter
-						.clone()
-						.cartesian_product(idc_iter)
-						.flat_map(|(a, b)| [a, b])
-						.collect_vec(),
-					(idc.len() * idc.len(), Const::<2>),
-				),
-			)
-				.concat_along(Axis::<0>);
+			indeces.extend(
+				idc_iter
+					.clone()
+					.cartesian_product(idc_iter)
+					.flat_map(|(a, b)| [a, b]),
+			);
 			let idc = dev.tensor_from_vec(idc, shape);
 			let (q, tape) = q.clone().retaped::<T>().gather(idc.clone()).split_tape();
 			let (k, tape) = q
@@ -179,7 +171,12 @@ where
 			let sparse_attention = sparse_attention.reshape_like(&(shape.0 * shape.0,));
 			values = (values, sparse_attention).concat_along(Axis::<0>);
 		}
-		let weights = dev.from_sparse(values, indeces, (s1, s1));
+		let indeces_shape = (indeces.len() / 2, Const::<2>);
+		let weights = dev.from_sparse(
+			values,
+			dev.tensor_from_vec(indeces, indeces_shape),
+			(s1, s1),
+		);
 		let weights = weights.softmax::<Axis<1>>();
 
 		let tokens = weights.matmul(v);

@@ -20,7 +20,7 @@ use rand::thread_rng;
 use crate::dataset::{Data, Entry};
 
 mod dataset;
-mod from_sparse;
+// mod from_sparse;
 mod lsh;
 mod model;
 

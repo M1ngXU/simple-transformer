@@ -26,7 +26,7 @@ flate2 = "1.0.26"
 
 [features]
 cudarc = ["dep:cudarc", "cudarc/cudnn"]
-default = ["train", "cuda"]
+default = ["train"]
 train = []
 inference = []
 test = []
