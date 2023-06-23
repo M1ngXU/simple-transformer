@@ -24,10 +24,10 @@ mod dataset;
 mod lsh;
 mod model;
 
-const BATCH_SIZE: usize = 256;
+const BATCH_SIZE: usize = 16;
 const VALIDATION_BATCH_SIZE: usize = BATCH_SIZE;
 const EPOCHS: usize = 10000;
-const DATA_PER_BATCH: usize = 16;
+const DATA_PER_BATCH: usize = 4;
 const NO_LOSS_IMPROVEMENT: usize = 20;
 
 /// Amount of digits required to display [`EPOCHS`] as decimal.
@@ -122,19 +122,20 @@ fn test() {
 	let data = Data::new();
 
 	model
-		.load("checkpoints/simple-transformer-00337.npz")
+		.load("checkpoints/simple-transformer-00167.npz")
 		.unwrap();
 
 	let model = model;
 
 	let test_data = data.test_data;
 
-	let test_data_size = test_data.len();
+	let test_data_size = 10000; //test_data.len();
 
 	println!("Test data size: {test_data_size}");
 
 	let correct = test_data
 		.iter()
+		.take(test_data_size)
 		.par_bridge()
 		.filter(|Entry { tokens, label }| {
 			let pred = model.forward(tokens.clone()).array()[0];

@@ -134,49 +134,57 @@ where
 
 		let (q, tape) = self.w_qk.forward(qk).split_tape();
 
-		let planes = dev.sample_normal_like(&(Const::<K>, Const::<HASHES>));
+		let weights = if HASHES == 0 {
+			q.clone().retaped::<T>().matmul(
+				q.put_tape(tape)
+					.normalize::<Axis<1>>(1e-6)
+					.permute::<_, Axes2<1, 0>>(),
+			) / E::from_f64((K as f64).sqrt()).unwrap()
+		} else {
+			let planes = dev.sample_normal_like(&(Const::<K>, Const::<HASHES>));
 
-		let buckets = q.clone().matmul(planes).ge(E::from_f64(0.0).unwrap());
+			let buckets = q.clone().matmul(planes).ge(E::from_f64(0.0).unwrap());
 
-		let bucket_ids = buckets
-			.as_vec()
-			.chunks(HASHES)
-			.map(|hash| hash.iter().fold(0_usize, |a, &b| (a << 1) | b as usize))
-			.enumerate()
-			.map(|(i, hash)| (hash, i))
-			.into_group_map();
+			let bucket_ids = buckets
+				.as_vec()
+				.chunks(HASHES)
+				.map(|hash| hash.iter().fold(0_usize, |a, &b| (a << 1) | b as usize))
+				.enumerate()
+				.map(|(i, hash)| (hash, i))
+				.into_group_map();
 
-		let mut indeces = Vec::new();
-		let mut values = dev.zeros_like(&(0,)).put_tape(tape);
+			let mut indeces = Vec::new();
+			let mut values = dev.zeros_like(&(0,)).put_tape(tape);
 
-		for (_, idc) in bucket_ids {
-			let shape = (idc.len(),);
-			let idc_iter = idc.iter().copied();
-			indeces.extend(
-				idc_iter
+			for (_, idc) in bucket_ids {
+				let shape = (idc.len(),);
+				let idc_iter = idc.iter().copied();
+				indeces.extend(
+					idc_iter
+						.clone()
+						.cartesian_product(idc_iter)
+						.flat_map(|(a, b)| [a, b]),
+				);
+				let idc = dev.tensor_from_vec(idc, shape);
+				let (q, tape) = q.clone().retaped::<T>().gather(idc.clone()).split_tape();
+				let (k, tape) = q
 					.clone()
-					.cartesian_product(idc_iter)
-					.flat_map(|(a, b)| [a, b]),
-			);
-			let idc = dev.tensor_from_vec(idc, shape);
-			let (q, tape) = q.clone().retaped::<T>().gather(idc.clone()).split_tape();
-			let (k, tape) = q
-				.clone()
-				.put_tape(tape)
-				.normalize::<Axis<1>>(1e-6)
-				.permute::<_, Axes2<1, 0>>()
-				.split_tape();
-			let sparse_attention =
-				q.put_tape(tape).matmul(k) / E::from_f64((K as f64).sqrt()).unwrap();
-			let sparse_attention = sparse_attention.reshape_like(&(shape.0 * shape.0,));
-			values = (values, sparse_attention).concat_along(Axis::<0>);
-		}
-		let indeces_shape = (indeces.len() / 2, Const::<2>);
-		let weights = dev.from_sparse(
-			values,
-			dev.tensor_from_vec(indeces, indeces_shape),
-			(s1, s1),
-		);
+					.put_tape(tape)
+					.normalize::<Axis<1>>(1e-6)
+					.permute::<_, Axes2<1, 0>>()
+					.split_tape();
+				let sparse_attention =
+					q.put_tape(tape).matmul(k) / E::from_f64((K as f64).sqrt()).unwrap();
+				let sparse_attention = sparse_attention.reshape_like(&(shape.0 * shape.0,));
+				values = (values, sparse_attention).concat_along(Axis::<0>);
+			}
+			let indeces_shape = (indeces.len() / 2, Const::<2>);
+			dev.from_sparse(
+				values,
+				dev.tensor_from_vec(indeces, indeces_shape),
+				(s1, s1),
+			)
+		};
 		let weights = weights.softmax::<Axis<1>>();
 
 		let tokens = weights.matmul(v);

@@ -5,9 +5,9 @@ use crate::lsh::builder::LshAttention;
 
 pub const VOCAB: usize = 8192;
 pub const DIM: usize = 512;
-pub const NUM_MHA_HEADS: usize = 8;
+pub const NUM_MHA_HEADS: usize = 2;
 pub const NUM_ENCODER_LAYERS: usize = 8;
-pub const HASHES: usize = 5;
+pub const HASHES: usize = 8;
 
 pub mod builder {
 	pub struct PositionalEncoding;
