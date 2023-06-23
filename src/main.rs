@@ -24,11 +24,11 @@ mod dataset;
 mod lsh;
 mod model;
 
-const BATCH_SIZE: usize = 64;
+const BATCH_SIZE: usize = 256;
 const VALIDATION_BATCH_SIZE: usize = BATCH_SIZE;
 const EPOCHS: usize = 10000;
-const DATA_PER_BATCH: usize = 32;
-const NO_LOSS_IMPROVEMENT: usize = 5;
+const DATA_PER_BATCH: usize = 16;
+const NO_LOSS_IMPROVEMENT: usize = 20;
 
 /// Amount of digits required to display [`EPOCHS`] as decimal.
 const EPOCH_SIZE: usize = (EPOCHS - 1).ilog10() as usize + 1;
@@ -196,7 +196,7 @@ fn train() {
 	let mut best_training_loss_epoch = 0;
 
 	let optimizer = Arc::new(RwLock::new(Adam::<_, f32, Cpu>::new(&model, AdamConfig {
-		lr: 1e-7,
+		lr: 1e-4,
 		..Default::default()
 	})));
 	let model = Arc::new(RwLock::new(model));
